@@ -1,0 +1,21 @@
+appname: CTStickerBotDev
+
+db:
+  host: 127.0.0.1:8432
+  name: botdb
+  user: bot
+  password: pass
+
+telegram_bot:
+  enable_debug: true
+  inline_stickers_limit: 10
+
+ocr:
+  base_url: https://api.ocr.space/parse/image
+  is_overlay_required: false
+  ocr_engine: 1
+  language: rus
+
+contacts:
+  - name: i test
+    email: test@test.com
