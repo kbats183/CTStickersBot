@@ -7,6 +7,42 @@ import (
 	"go.uber.org/zap"
 )
 
+func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int, requestCount int, adminCount int, err error) {
+	conn, err := st.clientPull.Acquire(ctx)
+	defer conn.Release()
+
+	sqlQuery := `SELECT 
+(SELECT count(*) FROM sticker) AS sticker_count, 
+(SELECT count(*) FROM users) as user_count, 
+(SELECT count(*) FROM request) as request_count,
+(SELECT count(*) FROM admins) as admin_count;`
+	row := conn.QueryRow(ctx, sqlQuery)
+	err = row.Scan(&stickerCount, &userCount, &requestCount, &adminCount)
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+	return
+}
+
+func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int, telegramLogin string) (adminID int, err error) {
+	conn, err := st.clientPull.Acquire(ctx)
+	defer conn.Release()
+
+	sqlQuery := `SELECT id FROM admins WHERE tg_id = $1 AND tg_login = $2;`
+	rows, err := conn.Query(ctx, sqlQuery, telegramID, telegramLogin)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&adminID)
+		if err != nil {
+			return 0, err
+		}
+		return adminID, nil
+	}
+	return
+}
+
 func (st *Storage) CreateSticker(ctx context.Context, sticker *tgbotapi.Sticker, stickerText string) (int, error) {
 	conn, err := st.clientPull.Acquire(ctx)
 	defer conn.Release()

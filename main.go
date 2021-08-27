@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	context2 "github.com/kbats183/CTStickersBot/pkg/core/context"
+	bot_admin "github.com/kbats183/CTStickersBot/pkg/bot-admin"
+	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/ocrapi"
 	"go.uber.org/zap/zapcore"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/kbats183/CTStickersBot/pkg/storage"
 	"github.com/kbats183/CTStickersBot/pkg/tgbot"
 	"go.uber.org/zap"
-	"log"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 	}
 	logger.Info("config", zap.Any("any", appConfig))
 
-	ctx := context2.Context{Context: context.Background(), Logger: logger, OCRClient: ocrapi.NewOCRClient(appConfig.OCR)}
+	ctx := botcontext.Context{Context: context.Background(), Logger: logger, OCRClient: ocrapi.NewOCRClient(appConfig.OCR)}
 
 	st, err := storage.NewStorage(ctx, appConfig.DB)
 
@@ -44,6 +44,7 @@ func main() {
 		ctx.Logger.Fatal("Can't create storage", zap.Error(err))
 	}
 
+	server := bot_admin.NewBotAdminServer(appConfig.ServerConfig, ctx, st)
 	bot, err := tgbot.NewBot(appConfig.TelegramBot, st)
 	if err != nil {
 		panic(err)
@@ -51,6 +52,9 @@ func main() {
 
 	logger.Info("Bot user name", zap.String("bot_login", bot.GetBotUserName()))
 
-	log.Fatal(bot.StartListening(ctx))
-
+	go func() {
+		logger.Fatal("Telegram bot failed", zap.Error(bot.StartListening(ctx)))
+	}()
+	go func() { logger.Fatal("Server failed", zap.Error(server.Listen())) }()
+	select {}
 }

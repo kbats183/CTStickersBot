@@ -42,7 +42,20 @@ func (b *Bot) answerChosenInlineResult(ctx context2.Context, updateID int, chose
 	ctx.Logger.Info("ChosenInlineResult", zap.Any("result", chosenInlineResult))
 }
 
-func (b *Bot) answerMessageSticker(ctx context2.Context, updateID int, sticker *tgbotapi.Sticker) {
+func (b *Bot) answerMessageSticker(ctx context2.Context, updateID int, message *tgbotapi.Message) {
+	isThisUserAdmin, err := b.storage.CheckAdminTelegram(ctx, message.From.ID, message.From.UserName)
+	sticker := message.Sticker
+	if err != nil {
+		ctx.Logger.Error("Can't check telegram user permission", zap.Error(err), zap.Any("message", message))
+		return
+	} else if isThisUserAdmin == 0 {
+		_, err := b.tgBotApi.Send(tgbotapi.NewMessage(message.Chat.ID, "Прикольный стикер! Интересно, есть ли у меня такой?"))
+		if err != nil {
+			ctx.Logger.Info("Can't answer message", zap.Error(err))
+		}
+		return
+	}
+
 	url, err := b.tgBotApi.GetFileDirectURL(sticker.FileID)
 	if err != nil {
 		panic(err)
@@ -64,6 +77,10 @@ func (b *Bot) answerMessageSticker(ctx context2.Context, updateID int, sticker *
 		return
 	}
 	ctx.Logger.Info("Create sticker", zap.Any("sticker", sticker), zap.String("sticker_text", stickerText), zap.Int("sticker_id", createdStickerID))
+	_, err = b.tgBotApi.Send(tgbotapi.NewMessage(message.Chat.ID, "ok"))
+	if err != nil {
+		ctx.Logger.Info("Can't answer message", zap.Error(err))
+	}
 }
 
 func (b *Bot) answerMessage(ctx context2.Context, updateID int, message *tgbotapi.Message) {

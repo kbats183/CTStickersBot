@@ -16,6 +16,5 @@ ocr:
   ocr_engine: 1
   language: rus
 
-contacts:
-  - name: i test
-    email: test@test.com
+server:
+  port: 8080

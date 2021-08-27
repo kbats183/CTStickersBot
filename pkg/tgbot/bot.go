@@ -24,6 +24,7 @@ func NewBot(config core.BotConfig, storage *storage.Storage) (*Bot, error) {
 }
 
 func (b *Bot) StartListening(ctx context.Context) error {
+	ctx.Logger.Info("Starting telegram bot ...")
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -47,7 +48,7 @@ func (b *Bot) updateHandler(ctx context.Context, update *tgbotapi.Update) {
 	} else if update.ChosenInlineResult != nil {
 		b.answerChosenInlineResult(ctx, upID, update.ChosenInlineResult)
 	} else if update.Message != nil && update.Message.Sticker != nil {
-		b.answerMessageSticker(ctx, upID, update.Message.Sticker)
+		b.answerMessageSticker(ctx, upID, update.Message)
 	} else if update.Message != nil {
 		b.answerMessage(ctx, upID, update.Message)
 	} else {

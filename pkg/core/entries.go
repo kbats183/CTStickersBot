@@ -8,6 +8,8 @@ type AppConfig struct {
 	TelegramBot BotConfig `yaml:"telegram_bot"`
 
 	OCR OCRClientConfig `yaml:"ocr"`
+
+	ServerConfig ServerConfig `yaml:"server"`
 }
 
 type StorageConfig struct {
@@ -20,7 +22,7 @@ type StorageConfig struct {
 type BotConfig struct {
 	BotAuthToken       string `yaml:"auth_token" env:"BOT_AUTH_TOKEN"`
 	EnableDebug        bool   `yaml:"enable_debug" env:"BOT_ENABLE_DEBUG" default:"true"`
-	InlineStickerLimit int   `yaml:"inline_stickers_limit" env:"BOT_INLINE_STICKER_LIMIT" default:"10"`
+	InlineStickerLimit int    `yaml:"inline_stickers_limit" env:"BOT_INLINE_STICKER_LIMIT" default:"10"`
 }
 
 type OCRClientConfig struct {
@@ -29,6 +31,10 @@ type OCRClientConfig struct {
 	IsOverlayRequired bool   `yaml:"is_overlay_required"`
 	OCREngine         int    `yaml:"ocr_engine"`
 	Language          string `yaml:"language"`
+}
+
+type ServerConfig struct {
+	Port string `yaml:"port" env:"PORT"`
 }
 
 type StickerAnswer struct {
