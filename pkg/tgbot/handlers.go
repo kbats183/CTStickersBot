@@ -32,7 +32,10 @@ func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbo
 	}
 
 	//ctx.Logger.Info("Preparing inline answer", zap.Any("Answer", queryResults))
-	query, err := b.tgBotApi.AnswerInlineQuery(tgbotapi.InlineConfig{InlineQueryID: inlineQuery.ID, Results: queryResults})
+	query, err := b.tgBotApi.AnswerInlineQuery(tgbotapi.InlineConfig{
+		InlineQueryID: inlineQuery.ID,
+		Results:       queryResults,
+		CacheTime:     1})
 	if err != nil {
 		ctx.Logger.Info("Can't send inline query result", zap.Error(err))
 	} else if !query.Ok {
