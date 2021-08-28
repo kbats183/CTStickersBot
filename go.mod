@@ -1,3 +1,5 @@
+// +heroku goVersion go1.16
+
 module github.com/kbats183/CTStickersBot
 
 go 1.16

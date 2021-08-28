@@ -13,10 +13,10 @@ type AppConfig struct {
 }
 
 type StorageConfig struct {
-	Host     string `yaml:"host" env:"DBHost"`
-	UserName string `yaml:"user" env:"DBUser"`
-	Password string `yaml:"password" env:"DBPassword"`
-	DBName   string `yaml:"name" env:"DBName"`
+	Host     string `yaml:"host" env:"DB_HOST"`
+	UserName string `yaml:"user" env:"DB_USER"`
+	Password string `yaml:"password" env:"DB_PASSWORD"`
+	DBName   string `yaml:"name" env:"DB_NAME"`
 }
 
 type BotConfig struct {

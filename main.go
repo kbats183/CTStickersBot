@@ -39,7 +39,6 @@ func main() {
 	ctx := botcontext.Context{Context: context.Background(), Logger: logger, OCRClient: ocrapi.NewOCRClient(appConfig.OCR)}
 
 	st, err := storage.NewStorage(ctx, appConfig.DB)
-
 	if err != nil {
 		ctx.Logger.Fatal("Can't create storage", zap.Error(err))
 	}
@@ -47,7 +46,7 @@ func main() {
 	server := bot_admin.NewBotAdminServer(appConfig.ServerConfig, ctx, st)
 	bot, err := tgbot.NewBot(appConfig.TelegramBot, st)
 	if err != nil {
-		panic(err)
+		logger.Error("Can't login a telegram bot", zap.Error(err))
 	}
 
 	logger.Info("Bot user name", zap.String("bot_login", bot.GetBotUserName()))

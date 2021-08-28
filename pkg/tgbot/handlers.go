@@ -12,6 +12,7 @@ import (
 
 func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbotapi.InlineQuery) {
 	userRequestToken := request_tokenizer.Tokenize(inlineQuery.Query)
+	updateIDStr := strconv.Itoa(updateID)
 	err := b.storage.SaveUserRequest(ctx, inlineQuery.From.ID, inlineQuery.From.UserName, inlineQuery.Query)
 	if err != nil {
 		ctx.Logger.Error("Can't save user request", zap.Error(err))
@@ -25,7 +26,7 @@ func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbo
 	}
 	for _, sticker := range stickers {
 		queryResults = append(queryResults,
-			tgbotapi.NewInlineQueryResultCachedSticker(strconv.Itoa(sticker.ID), sticker.FileID, sticker.StickerTitle),
+			tgbotapi.NewInlineQueryResultCachedSticker(updateIDStr+"_"+strconv.Itoa(sticker.ID), sticker.FileID, sticker.StickerTitle),
 		)
 	}
 
