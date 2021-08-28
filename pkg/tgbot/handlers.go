@@ -8,11 +8,12 @@ import (
 	request_tokenizer "github.com/kbats183/CTStickersBot/pkg/request-tokenizer"
 	"go.uber.org/zap"
 	"strconv"
+	"time"
 )
 
 func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbotapi.InlineQuery) {
 	userRequestToken := request_tokenizer.Tokenize(inlineQuery.Query)
-	updateIDStr := strconv.Itoa(updateID)
+	updateIDStr := time.Now().Format(time.RFC3339Nano) + "_" + strconv.Itoa(updateID)
 	err := b.storage.SaveUserRequest(ctx, inlineQuery.From.ID, inlineQuery.From.UserName, inlineQuery.Query)
 	if err != nil {
 		ctx.Logger.Error("Can't save user request", zap.Error(err))
