@@ -26,7 +26,7 @@ func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbo
 	}
 	for _, sticker := range stickers {
 		queryResults = append(queryResults,
-			tgbotapi.NewInlineQueryResultCachedSticker(updateIDStr+"_"+strconv.Itoa(sticker.ID), sticker.FileID, sticker.StickerTitle),
+			tgbotapi.NewInlineQueryResultCachedSticker(updateIDStr+"_"+strconv.Itoa(sticker.ID), sticker.FileID, updateIDStr+"_"+sticker.StickerTitle),
 		)
 	}
 
