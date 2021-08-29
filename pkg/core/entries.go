@@ -1,5 +1,7 @@
 package core
 
+import external_server_ticker "github.com/kbats183/CTStickersBot/pkg/external-server-ticker"
+
 type AppConfig struct {
 	APPName string `default:"CTStickerBot"`
 
@@ -10,6 +12,8 @@ type AppConfig struct {
 	OCR OCRClientConfig `yaml:"ocr"`
 
 	ServerConfig ServerConfig `yaml:"server"`
+
+	ServerTicker external_server_ticker.ServerTickerConfig `yaml:"server_ticker"`
 }
 
 type StorageConfig struct {

@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	bot_admin "github.com/kbats183/CTStickersBot/pkg/bot-admin"
+	bot_admin "github.com/kbats183/CTStickersBot/pkg/bot-server"
 	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
+	external_server_ticker "github.com/kbats183/CTStickersBot/pkg/external-server-ticker"
 	"github.com/kbats183/CTStickersBot/pkg/ocrapi"
 	"go.uber.org/zap/zapcore"
+	"os"
 
 	"github.com/jinzhu/configor"
 	"github.com/kbats183/CTStickersBot/pkg/core"
@@ -36,6 +38,11 @@ func main() {
 	}
 	logger.Info("config", zap.Any("any", appConfig))
 
+	if os.Getenv("DISABLE") == "true" {
+		logger.Info("Server disable")
+		select {}
+	}
+
 	ctx := botcontext.Context{Context: context.Background(), Logger: logger, OCRClient: ocrapi.NewOCRClient(appConfig.OCR)}
 
 	st, err := storage.NewStorage(ctx, appConfig.DB)
@@ -43,11 +50,14 @@ func main() {
 		ctx.Logger.Fatal("Can't create storage", zap.Error(err))
 	}
 
-	server := bot_admin.NewBotAdminServer(appConfig.ServerConfig, ctx, st)
 	bot, err := tgbot.NewBot(appConfig.TelegramBot, st)
 	if err != nil {
 		logger.Error("Can't login a telegram bot", zap.Error(err))
 	}
+
+	server := bot_admin.NewBotAdminServer(appConfig.ServerConfig, ctx, st)
+
+	serverTicker := external_server_ticker.NewServerTicker(&appConfig.ServerTicker, logger)
 
 	logger.Info("Bot user name", zap.String("bot_login", bot.GetBotUserName()))
 
@@ -55,5 +65,6 @@ func main() {
 		logger.Fatal("Telegram bot failed", zap.Error(bot.StartListening(ctx)))
 	}()
 	go func() { logger.Fatal("Server failed", zap.Error(server.Listen())) }()
+	serverTicker.Start()
 	select {}
 }

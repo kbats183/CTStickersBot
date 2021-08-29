@@ -1,4 +1,4 @@
-package bot_admin
+package bot_server
 
 import (
 	"fmt"

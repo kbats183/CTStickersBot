@@ -18,3 +18,6 @@ ocr:
 
 server:
   port: 8080
+
+server_ticker:
+  interval_sec: 60
