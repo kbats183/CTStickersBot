@@ -2,12 +2,19 @@ package ocrapi
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/kbats183/CTStickersBot/pkg/core"
 	"strconv"
 )
 
+type OCRClientConfig struct {
+	BaseURL           string `yaml:"base_url"`
+	ApiToken          string `yaml:"api_token" env:"OCRAPI_TOKEN"`
+	IsOverlayRequired bool   `yaml:"is_overlay_required"`
+	OCREngine         int    `yaml:"ocr_engine"`
+	Language          string `yaml:"language"`
+}
+
 type OCRClient struct {
-	config      core.OCRClientConfig
+	config      OCRClientConfig
 	restyClient *resty.Client
 }
 
@@ -35,7 +42,7 @@ func (client *OCRClient) ParseImage(filePath string) (*ParseAnswer, error) {
 	return &answer, nil
 }
 
-func NewOCRClient(config core.OCRClientConfig) *OCRClient {
+func NewOCRClient(config OCRClientConfig) *OCRClient {
 	client := resty.New()
 
 	return &OCRClient{

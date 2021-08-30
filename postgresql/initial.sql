@@ -53,13 +53,14 @@ CREATE TABLE admins
     tg_id    INTEGER NOT NULL,
     tg_login VARCHAR NOT NULL,
     password VARCHAR NOT NULL,
+    active   BOOLEAN NOT NULL,
     UNIQUE (tg_id),
     UNIQUE (id)
 );
 ALTER SEQUENCE admins_id_seq OWNED BY admins.id;
 
-INSERT INTO public.admins (tg_id, tg_login, password)
-VALUES (316671439, 'kbats183', '');
+INSERT INTO public.admins (tg_id, tg_login, password, active)
+VALUES (316671439, 'kbats183', '', true);
 
 INSERT INTO public.sticker (tg_set_name, tg_file_id, text_content)
 VALUES ('CT_y2020_M3136_37', 'CAACAgIAAxkBAAMcYSVqItKfOHkJxy7pYHa0byrLHGgAAlUAA88F4BKLRD6LRXJpFyAE', 'Коля Лаврентьев

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	bot_admin "github.com/kbats183/CTStickersBot/pkg/bot-server"
+	"github.com/kbats183/CTStickersBot/pkg/core/config"
 	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	external_server_ticker "github.com/kbats183/CTStickersBot/pkg/external-server-ticker"
 	"github.com/kbats183/CTStickersBot/pkg/ocrapi"
@@ -10,7 +11,6 @@ import (
 	"os"
 
 	"github.com/jinzhu/configor"
-	"github.com/kbats183/CTStickersBot/pkg/core"
 	"github.com/kbats183/CTStickersBot/pkg/storage"
 	"github.com/kbats183/CTStickersBot/pkg/tgbot"
 	"go.uber.org/zap"
@@ -31,7 +31,7 @@ func main() {
 	logger, _ := loggerConfig.Build()
 	defer func() { _ = logger.Sync() }()
 
-	var appConfig core.AppConfig
+	var appConfig config.AppConfig
 	err := configor.Load(&appConfig, "config_dev.yaml")
 	if err != nil {
 		logger.Error("Can't parse app config", zap.Error(err))

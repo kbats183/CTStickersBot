@@ -3,23 +3,31 @@ package bot_server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/kbats183/CTStickersBot/pkg/core"
 	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/storage"
+	"go.uber.org/zap"
 	"net/http"
 )
 
+type ServerConfig struct {
+	Port string `yaml:"port" env:"PORT"`
+}
+
 type BotAdminServer struct {
-	Config   core.ServerConfig
+	Config   ServerConfig
 	context  botcontext.Context
 	storage  *storage.Storage
 	router   *gin.Engine
 	handlers map[string]func(w http.ResponseWriter, r *http.Request)
 }
 
-func NewBotAdminServer(config core.ServerConfig, ctx botcontext.Context, storage *storage.Storage) *BotAdminServer {
+func NewBotAdminServer(config ServerConfig, ctx botcontext.Context, storage *storage.Storage) *BotAdminServer {
 	router := gin.New()
-	router.Use(gin.Logger())
+	router.Use(func(context *gin.Context) {
+		ctx.Logger.Debug("HTTP request",
+			zap.String("url", context.Request.RequestURI),
+		)
+	})
 	return &BotAdminServer{
 		Config:  config,
 		context: ctx,

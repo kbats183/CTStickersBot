@@ -28,7 +28,7 @@ func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int, teleg
 	conn, err := st.clientPull.Acquire(ctx)
 	defer conn.Release()
 
-	sqlQuery := `SELECT id FROM admins WHERE tg_id = $1 AND tg_login = $2;`
+	sqlQuery := `SELECT id FROM admins WHERE tg_id = $1 AND tg_login = $2 AND active IS TRUE;`
 	rows, err := conn.Query(ctx, sqlQuery, telegramID, telegramLogin)
 	if err != nil {
 		return

@@ -2,20 +2,25 @@ package tgbot
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/kbats183/CTStickersBot/pkg/core"
-	"github.com/kbats183/CTStickersBot/pkg/core/context"
+	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/storage"
 	"go.uber.org/zap"
 	"time"
 )
 
+type BotConfig struct {
+	BotAuthToken       string `yaml:"auth_token" env:"BOT_AUTH_TOKEN"`
+	EnableDebug        bool   `yaml:"enable_debug" env:"BOT_ENABLE_DEBUG" default:"true"`
+	InlineStickerLimit int    `yaml:"inline_stickers_limit" env:"BOT_INLINE_STICKER_LIMIT" default:"10"`
+}
+
 type Bot struct {
-	config   core.BotConfig
+	config   BotConfig
 	tgBotApi *tgbotapi.BotAPI
 	storage  *storage.Storage
 }
 
-func NewBot(config core.BotConfig, storage *storage.Storage) (*Bot, error) {
+func NewBot(config BotConfig, storage *storage.Storage) (*Bot, error) {
 	tgBotApi, err := tgbotapi.NewBotAPI(config.BotAuthToken)
 	if err != nil {
 		return nil, err
@@ -23,7 +28,7 @@ func NewBot(config core.BotConfig, storage *storage.Storage) (*Bot, error) {
 	return &Bot{config: config, tgBotApi: tgBotApi, storage: storage}, nil
 }
 
-func (b *Bot) StartListening(ctx context.Context) error {
+func (b *Bot) StartListening(ctx botcontext.Context) error {
 	ctx.Logger.Info("Starting telegram bot ...")
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -39,7 +44,7 @@ func (b *Bot) StartListening(ctx context.Context) error {
 	return nil
 }
 
-func (b *Bot) updateHandler(ctx context.Context, update *tgbotapi.Update) {
+func (b *Bot) updateHandler(ctx botcontext.Context, update *tgbotapi.Update) {
 	upID := update.UpdateID
 	ctx.Logger.Debug("Start update", zap.Int("update_id", upID), zap.Any("update", update))
 	startUpdateProcessing := time.Now()
@@ -52,7 +57,7 @@ func (b *Bot) updateHandler(ctx context.Context, update *tgbotapi.Update) {
 	} else if update.Message != nil {
 		b.answerMessage(ctx, upID, update.Message)
 	} else {
-		ctx.Logger.Info("Unknown update", zap.Any("update", update))
+		ctx.Logger.Debug("Unknown update", zap.Any("update", update))
 	}
 	ctx.Logger.Debug("End update", zap.Int("update_id", upID), zap.Int64("duration", int64(time.Now().Sub(startUpdateProcessing))))
 }
