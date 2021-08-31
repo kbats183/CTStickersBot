@@ -3,7 +3,7 @@ package tgbot
 import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	context2 "github.com/kbats183/CTStickersBot/pkg/core/context"
+	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/ocrapi"
 	request_tokenizer "github.com/kbats183/CTStickersBot/pkg/request-tokenizer"
 	"go.uber.org/zap"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbotapi.InlineQuery) {
+func (b *Bot) answerInline(ctx botcontext.Context, updateID int, inlineQuery *tgbotapi.InlineQuery) {
 	startUpdateProcessing := time.Now()
 
 	userRequestToken := request_tokenizer.Tokenize(inlineQuery.Query)
@@ -59,13 +59,13 @@ func (b *Bot) answerInline(ctx context2.Context, updateID int, inlineQuery *tgbo
 	}
 }
 
-func (b *Bot) answerChosenInlineResult(ctx context2.Context, updateID int, chosenInlineResult *tgbotapi.ChosenInlineResult) {
+func (b *Bot) answerChosenInlineResult(ctx botcontext.Context, updateID int, chosenInlineResult *tgbotapi.ChosenInlineResult) {
 	ctx.Logger.Debug("Chosen inline result",
 		zap.Int("update_id", updateID),
 		zap.Any("result", chosenInlineResult))
 }
 
-func (b *Bot) answerMessageSticker(ctx context2.Context, updateID int, message *tgbotapi.Message) {
+func (b *Bot) answerMessageSticker(ctx botcontext.Context, updateID int, message *tgbotapi.Message) {
 	isThisUserAdmin, err := b.storage.CheckAdminTelegram(ctx, message.From.ID, message.From.UserName)
 	sticker := message.Sticker
 	if err != nil {
@@ -128,7 +128,7 @@ func (b *Bot) answerMessageSticker(ctx context2.Context, updateID int, message *
 	}
 }
 
-func (b *Bot) answerMessage(ctx context2.Context, updateID int, message *tgbotapi.Message) {
+func (b *Bot) answerMessage(ctx botcontext.Context, updateID int, message *tgbotapi.Message) {
 	_, err := b.tgBotApi.Send(tgbotapi.NewMessage(message.Chat.ID, "Hello, "+message.Chat.UserName+"!"))
 	if err != nil {
 		ctx.Logger.Info("Can't answer message",

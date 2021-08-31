@@ -46,20 +46,32 @@ func (b *Bot) StartListening(ctx botcontext.Context) error {
 
 func (b *Bot) updateHandler(ctx botcontext.Context, update *tgbotapi.Update) {
 	upID := update.UpdateID
+	upAction := "unknown"
+	ctx.Logger.Debug("End start",
+		zap.Int("update_id", upID),
+		zap.Any("update", update))
 	ctx.Logger.Debug("Start update", zap.Int("update_id", upID), zap.Any("update", update))
 	startUpdateProcessing := time.Now()
 	if update.InlineQuery != nil {
+		upAction = "InlineQuery"
 		b.answerInline(ctx, upID, update.InlineQuery)
 	} else if update.ChosenInlineResult != nil {
+		upAction = "ChosenInlineResult"
 		b.answerChosenInlineResult(ctx, upID, update.ChosenInlineResult)
 	} else if update.Message != nil && update.Message.Sticker != nil {
+		upAction = "MessageWithSticker"
 		b.answerMessageSticker(ctx, upID, update.Message)
 	} else if update.Message != nil {
+		upAction = "Message"
 		b.answerMessage(ctx, upID, update.Message)
 	} else {
 		ctx.Logger.Debug("Unknown update", zap.Any("update", update))
 	}
-	ctx.Logger.Debug("End update", zap.Int("update_id", upID), zap.Int64("duration", int64(time.Now().Sub(startUpdateProcessing))))
+	ctx.Logger.Debug("End update",
+		zap.Int("update_id", upID),
+		zap.Any("update", update),
+		zap.String("update_action", upAction),
+		zap.Int64("duration", int64(time.Now().Sub(startUpdateProcessing))))
 }
 
 func (b *Bot) GetBotUserName() string {
