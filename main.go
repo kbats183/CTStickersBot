@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		logger.Error("Can't parse app config", zap.Error(err))
 	}
-	logger.Info("config", zap.Any("any", appConfig))
 
 	if os.Getenv("DISABLE") == "true" {
 		logger.Info("Server disable")
