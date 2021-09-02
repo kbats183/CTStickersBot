@@ -4,7 +4,6 @@ import (
 	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/kbats183/CTStickersBot/pkg/core"
-	"go.uber.org/zap"
 )
 
 func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int, requestCount int, adminCount int, err error) {
@@ -60,7 +59,7 @@ RETURNING id;`
 	return newStickerID, err
 }
 
-func (st *Storage) SearchStickers(ctx context.Context, userQuery []string, limit int, logger *zap.Logger) ([]core.StickerAnswer, error) {
+func (st *Storage) SearchStickers(ctx context.Context, userQuery []string, limit int) ([]core.StickerAnswer, error) {
 	conn, err := st.clientPull.Acquire(ctx)
 	defer conn.Release()
 
@@ -78,7 +77,6 @@ SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("Have rows")
 	for rows.Next() {
 		var sticker core.StickerAnswer
 		err := rows.Scan(

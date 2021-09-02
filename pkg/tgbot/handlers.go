@@ -22,7 +22,7 @@ func (b *Bot) answerInline(ctx botcontext.Context, updateID int, inlineQuery *tg
 			zap.Int("update_id", updateID),
 			zap.Error(err))
 	}
-	stickers, err := b.storage.SearchStickers(context.Background(), userRequestToken, b.config.InlineStickerLimit, ctx.Logger)
+	stickers, err := b.storage.SearchStickers(context.Background(), userRequestToken, b.config.InlineStickerLimit)
 	if err != nil {
 		ctx.Logger.Error("Can't search stickers",
 			zap.Int("update_id", updateID),
@@ -104,6 +104,7 @@ func (b *Bot) answerMessageSticker(ctx botcontext.Context, updateID int, message
 			zap.Error(err))
 		return
 	}
+	ctx.Logger.Debug("OCR api answer", zap.Any("answer", parseAnswer))
 	stickerText := ocrapi.GetStringByParseAnswer(parseAnswer)
 	createdStickerID, err := b.storage.CreateSticker(ctx, sticker, stickerText)
 	if err != nil {
