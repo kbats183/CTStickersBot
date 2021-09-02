@@ -44,9 +44,9 @@ func (ticker *ServerTicker) ping() (string, error) {
 func (ticker *ServerTicker) tick() {
 	serverAnswer, err := ticker.ping()
 	if err != nil {
-		ticker.logger.Info("Can't ping external server", zap.Error(err))
+		ticker.logger.Error("Can't ping external server", zap.Error(err))
 	} else if serverAnswer != "pong" {
-		ticker.logger.Info("External server's ping return bad answer", zap.String("server_answer", serverAnswer))
+		ticker.logger.Error("External server's ping return bad answer", zap.String("server_answer", serverAnswer))
 	} else {
 		ticker.logger.Info("External server's ping ok")
 	}
