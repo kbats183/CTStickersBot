@@ -4,10 +4,11 @@ DROP SEQUENCE IF EXISTS sticker_id_seq;
 CREATE SEQUENCE sticker_id_seq;
 CREATE TABLE sticker
 (
-    id           INTEGER NOT NULL DEFAULT nextval('sticker_id_seq'),
-    tg_set_name  VARCHAR NOT NULL,
-    tg_file_id   VARCHAR NOT NULL,
-    text_content VARCHAR NOT NULL,
+    id            INTEGER   NOT NULL DEFAULT nextval('sticker_id_seq'),
+    tg_set_name   VARCHAR   NOT NULL,
+    tg_file_id    VARCHAR   NOT NULL,
+    text_content  VARCHAR   NOT NULL,
+    addition_time TIMESTAMP NOT NULL DEFAULT now(),
     UNIQUE (id),
     UNIQUE (tg_file_id)
 );
