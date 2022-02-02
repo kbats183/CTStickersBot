@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/kbats183/CTStickersBot/pkg/core"
 )
 
@@ -23,7 +23,7 @@ func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int,
 	return
 }
 
-func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int, telegramLogin string) (adminID int, err error) {
+func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int64, telegramLogin string) (adminID int, err error) {
 	conn, err := st.clientPull.Acquire(ctx)
 	defer conn.Release()
 
@@ -92,7 +92,7 @@ SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_
 	return stickers, nil
 }
 
-func (st *Storage) SaveUserRequest(ctx context.Context, userTgId int, userLogin string, request string) error {
+func (st *Storage) SaveUserRequest(ctx context.Context, userTgId int64, userLogin string, request string) error {
 	conn, err := st.clientPull.Acquire(ctx)
 	defer conn.Release()
 

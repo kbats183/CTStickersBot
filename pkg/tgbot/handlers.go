@@ -2,7 +2,8 @@ package tgbot
 
 import (
 	"context"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"encoding/json"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/ocrapi"
 	request_tokenizer "github.com/kbats183/CTStickersBot/pkg/request-tokenizer"
@@ -38,24 +39,20 @@ func (b *Bot) answerInline(ctx botcontext.Context, updateID int, inlineQuery *tg
 		)
 	}
 
-	query, err := b.tgBotApi.AnswerInlineQuery(tgbotapi.InlineConfig{
+	_, err = b.tgBotApi.Send(tgbotapi.InlineConfig{
 		InlineQueryID: inlineQuery.ID,
 		Results:       queryResults,
 		CacheTime:     1})
-	if err != nil {
-		ctx.Logger.Info("Can't send inline query result",
+	_, isUnmarshalTypeError := err.(*json.UnmarshalTypeError)
+	if err != nil && !isUnmarshalTypeError {
+		ctx.Logger.Info("Can't send inline message result",
 			zap.Int("update_id", updateID),
 			zap.Error(err))
-	} else if !query.Ok {
-		ctx.Logger.Info("Can't send inline query result",
-			zap.Int("update_id", updateID),
-			zap.Any("response", query.Result))
 	} else {
 		ctx.Logger.Info("Answer user's search request",
 			zap.Int("update_id", updateID),
 			zap.Int64("duration", time.Now().Sub(startUpdateProcessing).Nanoseconds()),
-			zap.Any("user_request", userRequestToken),
-			zap.Any("api_response", query.Result))
+			zap.Any("user_request", userRequestToken))
 	}
 }
 

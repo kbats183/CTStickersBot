@@ -1,7 +1,7 @@
 package tgbot
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	botcontext "github.com/kbats183/CTStickersBot/pkg/core/context"
 	"github.com/kbats183/CTStickersBot/pkg/storage"
 	"go.uber.org/zap"
@@ -33,10 +33,7 @@ func (b *Bot) StartListening(ctx botcontext.Context) error {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates, err := b.tgBotApi.GetUpdatesChan(u)
-	if err != nil {
-		return err
-	}
+	updates := b.tgBotApi.GetUpdatesChan(u)
 
 	for update := range updates {
 		b.updateHandler(ctx, &update)
@@ -47,9 +44,6 @@ func (b *Bot) StartListening(ctx botcontext.Context) error {
 func (b *Bot) updateHandler(ctx botcontext.Context, update *tgbotapi.Update) {
 	upID := update.UpdateID
 	upAction := "unknown"
-	ctx.Logger.Debug("End start",
-		zap.Int("update_id", upID),
-		zap.Any("update", update))
 	ctx.Logger.Debug("Start update", zap.Int("update_id", upID), zap.Any("update", update))
 	startUpdateProcessing := time.Now()
 	if update.InlineQuery != nil {
