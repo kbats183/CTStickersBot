@@ -6,10 +6,10 @@ import (
 	"github.com/kbats183/CTStickersBot/pkg/core"
 )
 
-func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int, requestCount int, adminCount int, err error) {
+func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int, requestCount int, chosenStickerCount int, adminCount int, err error) {
 	conn, err := st.clientPull.Acquire(ctx)
 	if conn == nil || err != nil {
-		return 0, 0, 0, 0, err
+		return 0, 0, 0, 0, 0, err
 	}
 	defer conn.Release()
 
@@ -17,11 +17,12 @@ func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int,
 (SELECT count(*) FROM sticker) AS sticker_count, 
 (SELECT count(*) FROM users) as user_count, 
 (SELECT count(*) FROM request) as request_count,
+(SELECT count(*) FROM request WHERE chosen_sticker_id IS NOT NULL) as chosen_sticker_count,
 (SELECT count(*) FROM admins) as admin_count;`
 	row := conn.QueryRow(ctx, sqlQuery)
-	err = row.Scan(&stickerCount, &userCount, &requestCount, &adminCount)
+	err = row.Scan(&stickerCount, &userCount, &requestCount, &chosenStickerCount, &adminCount)
 	if err != nil {
-		return 0, 0, 0, 0, err
+		return 0, 0, 0, 0, 0, err
 	}
 	return
 }

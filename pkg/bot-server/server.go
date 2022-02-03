@@ -37,18 +37,18 @@ func NewBotAdminServer(config ServerConfig, ctx botcontext.Context, storage *sto
 }
 
 func (server *BotAdminServer) handlerHome(c *gin.Context) {
-	stickerCount, userCount, requestCount, adminCount, err := server.storage.PingDB(server.context.Context)
+	stickerCount, userCount, requestCount, chosenStickerCount, adminCount, err := server.storage.PingDB(server.context.Context)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(fmt.Sprintf(`<html><body>
 <h1>CTStickerBot</h1>
-<p>Detabase info: %d stickers, %d requests, %d unique users, %d admins</p>
-</body></html>`, stickerCount, requestCount, userCount, adminCount)))
+<p>Detabase info: %d stickers, %d requests, %d chosen stickers, %d unique users, %d admins</p>
+</body></html>`, stickerCount, requestCount, chosenStickerCount, userCount, adminCount)))
 }
 
 func (server *BotAdminServer) handlerPing(c *gin.Context) {
-	_, _, _, _, err := server.storage.PingDB(server.context.Context)
+	_, _, _, _, _, err := server.storage.PingDB(server.context.Context)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 	}
