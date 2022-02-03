@@ -84,7 +84,7 @@ query_words AS (
 matches_stickers AS (
     SELECT st.id, (SELECT count(*) FROM query_words WHERE LOWER(st.text_content) LIKE '%' || query_words.word || '%') as match_count FROM sticker st ORDER BY match_count DESC LIMIT $2::INT
 )
-SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_stickers ms ON st.id = ms.id ORDER BY match_count DESC LIMIT $2::INT;`
+SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_stickers ms ON st.id = ms.id ORDER BY match_count DESC, st.addition_time DESC LIMIT $2::INT;`
 	rows, err := conn.Query(ctx, sqlQuery, userQuery, limit)
 	if err != nil {
 		return nil, err
