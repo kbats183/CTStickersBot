@@ -36,10 +36,12 @@ ALTER SEQUENCE users_id_seq OWNED BY users.id;
 CREATE SEQUENCE request_id_seq;
 CREATE TABLE request
 (
-    id      INTEGER   NOT NULL DEFAULT nextval('request_id_seq'),
-    user_id INTEGER   NOT NULL REFERENCES users (id),
-    text    VARCHAR   NOT NULL,
-    time    TIMESTAMP NOT NULL DEFAULT now(),
+    id                INTEGER   NOT NULL DEFAULT nextval('request_id_seq'),
+    user_id           INTEGER   NOT NULL REFERENCES users (id),
+    tg_id             INTEGER            DEFAULT 0,
+    text              VARCHAR   NOT NULL,
+    chosen_sticker_id INTEGER REFERENCES sticker (id),
+    time              TIMESTAMP NOT NULL DEFAULT now(),
     UNIQUE (id)
 );
 ALTER SEQUENCE request_id_seq OWNED BY request.id;

@@ -8,6 +8,9 @@ import (
 
 func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int, requestCount int, adminCount int, err error) {
 	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return 0, 0, 0, 0, err
+	}
 	defer conn.Release()
 
 	sqlQuery := `SELECT 
@@ -25,6 +28,9 @@ func (st *Storage) PingDB(ctx context.Context) (stickerCount int, userCount int,
 
 func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int64, telegramLogin string) (adminID int, err error) {
 	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return 0, err
+	}
 	defer conn.Release()
 
 	sqlQuery := `SELECT id FROM admins WHERE tg_id = $1 AND tg_login = $2 AND active IS TRUE;`
@@ -44,6 +50,9 @@ func (st *Storage) CheckAdminTelegram(ctx context.Context, telegramID int64, tel
 
 func (st *Storage) CreateSticker(ctx context.Context, sticker *tgbotapi.Sticker, stickerText string) (int, error) {
 	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return 0, err
+	}
 	defer conn.Release()
 
 	var newStickerID int
@@ -61,6 +70,9 @@ RETURNING id;`
 
 func (st *Storage) SearchStickers(ctx context.Context, userQuery []string, limit int) ([]core.StickerAnswer, error) {
 	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return nil, err
+	}
 	defer conn.Release()
 
 	var stickers []core.StickerAnswer
@@ -92,8 +104,11 @@ SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_
 	return stickers, nil
 }
 
-func (st *Storage) SaveUserRequest(ctx context.Context, userTgId int64, userLogin string, request string) error {
+func (st *Storage) SaveUserRequest(ctx context.Context, userTgID int64, userLogin string, tgID int, request string) error {
 	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return err
+	}
 	defer conn.Release()
 
 	sqlQuery := `
@@ -102,8 +117,21 @@ WITH user_ids AS (
 	ON CONFLICT (tg_id) DO UPDATE SET login = $2
 	RETURNING id
 )
-INSERT INTO request(user_id, text)
-(SELECT ids.id, $3 FROM (SELECT id FROM user_ids) ids);`
-	_, err = conn.Query(ctx, sqlQuery, userTgId, userLogin, request)
+INSERT INTO request(user_id, tg_id, text)
+(SELECT ids.id, $3, $4 FROM (SELECT id FROM user_ids) ids);`
+	_, err = conn.Query(ctx, sqlQuery, userTgID, userLogin, tgID, request)
+	return err
+}
+
+func (st *Storage) SaveUserRequestChosenSticker(ctx context.Context, tgRequestID int, stickerID int) error {
+	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	sqlQuery := `
+UPDATE request SET chosen_sticker_id = $1 WHERE tg_id = $2;`
+	_, err = conn.Query(ctx, sqlQuery, stickerID, tgRequestID)
 	return err
 }

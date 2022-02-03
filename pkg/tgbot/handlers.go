@@ -9,6 +9,7 @@ import (
 	request_tokenizer "github.com/kbats183/CTStickersBot/pkg/request-tokenizer"
 	"go.uber.org/zap"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -17,7 +18,7 @@ func (b *Bot) answerInline(ctx botcontext.Context, updateID int, inlineQuery *tg
 
 	userRequestToken := request_tokenizer.Tokenize(inlineQuery.Query)
 	updateIDStr := strconv.Itoa(updateID)
-	err := b.storage.SaveUserRequest(ctx, inlineQuery.From.ID, inlineQuery.From.UserName, inlineQuery.Query)
+	err := b.storage.SaveUserRequest(ctx, inlineQuery.From.ID, inlineQuery.From.UserName, updateID, inlineQuery.Query)
 	if err != nil {
 		ctx.Logger.Error("Can't save user request",
 			zap.Int("update_id", updateID),
@@ -35,7 +36,7 @@ func (b *Bot) answerInline(ctx botcontext.Context, updateID int, inlineQuery *tg
 	var queryResults []interface{}
 	for _, sticker := range stickers {
 		queryResults = append(queryResults,
-			tgbotapi.NewInlineQueryResultCachedSticker(updateIDStr+"_"+strconv.Itoa(sticker.ID), sticker.FileID, updateIDStr+"_"+sticker.StickerTitle),
+			tgbotapi.NewInlineQueryResultCachedSticker(updateIDStr+"_sticker_"+strconv.Itoa(sticker.ID), sticker.FileID, updateIDStr+"_"+sticker.StickerTitle),
 		)
 	}
 
@@ -60,6 +61,27 @@ func (b *Bot) answerChosenInlineResult(ctx botcontext.Context, updateID int, cho
 	ctx.Logger.Debug("Chosen inline result",
 		zap.Int("update_id", updateID),
 		zap.Any("result", chosenInlineResult))
+	resultIDFragment := strings.Split(chosenInlineResult.ResultID, "_")
+	if len(resultIDFragment) != 3 || resultIDFragment[1] != "sticker" {
+		ctx.Logger.Info("Dont save chosen inline result", zap.Any("result", chosenInlineResult))
+		return
+	}
+	tgRequestID, err := strconv.Atoi(resultIDFragment[0])
+	if err != nil {
+		ctx.Logger.Error("Cant parse chosen inline result id", zap.Any("result", chosenInlineResult), zap.Error(err))
+		return
+	}
+	stickerID, err := strconv.Atoi(resultIDFragment[2])
+	if err != nil {
+		ctx.Logger.Error("Cant parse chosen inline result id", zap.Any("result", chosenInlineResult), zap.Error(err))
+		return
+	}
+	err = b.storage.SaveUserRequestChosenSticker(ctx, tgRequestID, stickerID)
+	if err != nil {
+		ctx.Logger.Error("Cant chosen inline result", zap.Any("result", chosenInlineResult), zap.Error(err))
+		return
+	}
+	ctx.Logger.Info("Save chosen inline result id", zap.Any("result", chosenInlineResult), zap.Error(err))
 }
 
 func (b *Bot) answerMessageSticker(ctx botcontext.Context, updateID int, message *tgbotapi.Message) {
