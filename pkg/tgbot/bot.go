@@ -36,7 +36,7 @@ func (b *Bot) StartListening(ctx botcontext.Context) error {
 	updates := b.tgBotApi.GetUpdatesChan(u)
 
 	for update := range updates {
-		b.updateHandler(ctx, &update)
+		go b.updateHandler(ctx, &update)
 	}
 	return nil
 }
