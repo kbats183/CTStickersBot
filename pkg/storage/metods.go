@@ -58,15 +58,43 @@ func (st *Storage) CreateSticker(ctx context.Context, sticker *tgbotapi.Sticker,
 
 	var newStickerID int
 	sqlQuery := `
-INSERT INTO sticker(tg_file_id, tg_set_name, text_content) VALUES ($1, $2, $3)
-ON CONFLICT (tg_file_id) DO UPDATE SET text_content = $3
+INSERT INTO sticker(tg_file_id, tg_file_unique_id, tg_set_name, text_content) VALUES ($1, $2, $3, $4)
+ON CONFLICT (tg_file_unique_id) DO UPDATE SET tg_file_id = $1
 RETURNING id;`
-	row := conn.QueryRow(ctx, sqlQuery, sticker.FileID, sticker.SetName, stickerText)
+	row := conn.QueryRow(ctx, sqlQuery, sticker.FileID, sticker.FileUniqueID, sticker.SetName, stickerText)
 	err = row.Scan(&newStickerID)
 	if err != nil {
 		return 0, err
 	}
 	return newStickerID, err
+}
+
+func (st *Storage) CreateStickerSet(ctx context.Context, setName string, setTitle string) error {
+	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	sqlQuery := `
+INSERT INTO sticker_set(name, title) VALUES ($1, $2)
+ON CONFLICT (name) DO UPDATE SET title = $2
+RETURNING name;`
+	_, err = conn.Query(ctx, sqlQuery, setName, setTitle)
+	return err
+}
+
+func (st *Storage) SetTgFileUniqueId(ctx context.Context, id int, tgUniqueId string) error {
+	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	sqlQuery := `
+UPDATE sticker SET tg_file_unique_id = $2 WHERE id = $1;`
+	_, err = conn.Query(ctx, sqlQuery, id, tgUniqueId)
+	return err
 }
 
 func (st *Storage) SearchStickers(ctx context.Context, userQuery []string, limit int) ([]core.StickerAnswer, error) {
@@ -85,7 +113,7 @@ query_words AS (
 matches_stickers AS (
     SELECT st.id, (SELECT count(*) FROM query_words WHERE LOWER(st.text_content) LIKE '%' || query_words.word || '%') as match_count FROM sticker st ORDER BY match_count DESC LIMIT $2::INT
 )
-SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_stickers ms ON st.id = ms.id ORDER BY match_count DESC, st.addition_time DESC LIMIT $2::INT;`
+SELECT st.id, st.tg_file_id, st.tg_set_name, st.text_content FROM sticker st INNER JOIN matches_stickers ms ON st.id = ms.id ORDER BY match_count DESC, st.addition_time DESC LIMIT $2::INT;`
 	rows, err := conn.Query(ctx, sqlQuery, userQuery, limit)
 	if err != nil {
 		return nil, err
@@ -95,6 +123,37 @@ SELECT st.id, st.tg_file_id, st.text_content FROM sticker st INNER JOIN matches_
 		err := rows.Scan(
 			&sticker.ID,
 			&sticker.FileID,
+			&sticker.SetName,
+			&sticker.StickerTitle,
+		)
+		if err != nil {
+			return nil, err
+		}
+		stickers = append(stickers, sticker)
+	}
+	return stickers, nil
+}
+
+func (st *Storage) GetAllStickers(ctx context.Context) ([]core.StickerAnswer, error) {
+	conn, err := st.clientPull.Acquire(ctx)
+	if conn == nil || err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	var stickers []core.StickerAnswer
+	sqlQuery := `
+SELECT st.id, st.tg_file_id, st.tg_set_name, st.text_content FROM sticker st ORDER BY st.id ASC;`
+	rows, err := conn.Query(ctx, sqlQuery)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var sticker core.StickerAnswer
+		err := rows.Scan(
+			&sticker.ID,
+			&sticker.FileID,
+			&sticker.SetName,
 			&sticker.StickerTitle,
 		)
 		if err != nil {

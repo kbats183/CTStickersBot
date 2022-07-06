@@ -51,7 +51,7 @@ func main() {
 
 	bot, err := tgbot.NewBot(appConfig.TelegramBot, st)
 	if err != nil {
-		logger.Error("Can't login a telegram bot", zap.Error(err))
+		logger.Fatal("Can't login a telegram bot", zap.Error(err))
 	}
 
 	server := bot_admin.NewBotAdminServer(appConfig.ServerConfig, ctx, st)

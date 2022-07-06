@@ -125,6 +125,23 @@ func (b *Bot) answerMessageSticker(ctx botcontext.Context, updateID int, message
 	}
 	ctx.Logger.Debug("OCR api answer", zap.Any("answer", parseAnswer))
 	stickerText := ocrapi.GetStringByParseAnswer(parseAnswer)
+	stickerSetInfo, err := b.tgBotApi.GetStickerSet(tgbotapi.GetStickerSetConfig{Name: sticker.SetName})
+	if err != nil {
+		ctx.Logger.Error("Can't get sticker set info",
+			zap.Int("update_id", updateID),
+			zap.Any("sticker", sticker),
+			zap.Error(err))
+		return
+	}
+
+	err = b.storage.CreateStickerSet(ctx, sticker.SetName, stickerSetInfo.Title)
+	if err != nil {
+		ctx.Logger.Error("Can't create sticker set",
+			zap.Int("update_id", updateID),
+			zap.Any("sticker", sticker),
+			zap.Error(err))
+		return
+	}
 	createdStickerID, err := b.storage.CreateSticker(ctx, sticker, stickerText)
 	if err != nil {
 		ctx.Logger.Error("Can't create sticker",
